@@ -23,17 +23,17 @@ public void paint(Graphics g)
   * The `setBrush` method takes a `BColor` parameter.
   * The `fill` method takes an `IGeom` parameter. There are several implementations of `IGeom`, but the ones you should care about for this exercise are `BRectGeom` and `BEllipseGeom`
   * For the traffic light dimensions, I recommend a 100x250 rectangle where each light is 50x50 and has a padding of 25 around it.
-  * I recommend the following colors, although feel free to choose your own. The color formats in the below table are RRGGBBAA (red, green, blue, alpha)
+  * I recommend the following colors, although feel free to choose your own. The color formats in the below table are AARRGGBB (alpha, red, green, blue)
 
-| Light Component | Color |
-| --------------- | ----- |
-| Traffic Light Rectangle | `222222FF` |
-| Active Red Light | `FF0000FF` |
-| Inactive Red Light | `FF000019` |
-| Active Yellow Light | `FFFF00FF` |
-| Inactive Yellow Light | `FFFF0019` |
-| Active Green Light | `00FF7FFF` |
-| Inactive Green Light | `00FF7F19` |
+| Light Component | Color        |
+| --------------- |--------------|
+| Traffic Light Rectangle | `FF222222`   |
+| Active Red Light | `FFFF0000`   |
+| Inactive Red Light | `19FF0000`   |
+| Active Yellow Light | `FFFFFF00`   |
+| Inactive Yellow Light | `19FFFF00`   |
+| Active Green Light | `FF00FF7F`   |
+| Inactive Green Light | `1900FF7F` |
 
 ## Recommended Steps
 Try to implement the behavior described above without reading this section. If you need a nudge in the right direction, here are some recommended steps.
