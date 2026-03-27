@@ -16,15 +16,15 @@ import javax.baja.sys.Type;
 @NiagaraProperty(name = "fileName", type = "BString", defaultValue = "BString.DEFAULT")
 @NiagaraProperty(name = "path", type = "BString", defaultValue = "BString.DEFAULT")
 @NiagaraProperty(name = "size", type = "BInteger", defaultValue = "BInteger.DEFAULT")
-@NiagaraProperty(name = "createdDate", type = "BAbsTime", defaultValue = "BAbsTime.now()")
+@NiagaraProperty(name = "createdDate", type = "BAbsTime", defaultValue = "BAbsTime.DEFAULT")
 @NiagaraProperty(name = "modifiedDate", type = "BAbsTime", defaultValue = "BAbsTime.DEFAULT")
 @NiagaraAction(name = "touch")
 @NiagaraAction(name = "print")
 public class BFile extends BComponent {
 //region /*+ ------------ BEGIN BAJA AUTO GENERATED CODE ------------ +*/
 //@formatter:off
-/*@ $com.tridiumuniversity.myFile.BFile(3422492984)1.0$ @*/
-/* Generated Tue Mar 24 13:25:04 EDT 2026 by Slot-o-Matic (c) Tridium, Inc. 2012-2026 */
+/*@ $com.tridiumuniversity.myFile.BFile(4198529277)1.0$ @*/
+/* Generated Thu Mar 26 12:51:24 EDT 2026 by Slot-o-Matic (c) Tridium, Inc. 2012-2026 */
 
   //region Property "fileName"
 
@@ -102,7 +102,7 @@ public class BFile extends BComponent {
    * @see #getCreatedDate
    * @see #setCreatedDate
    */
-  public static final Property createdDate = newProperty(0, BAbsTime.now(), null);
+  public static final Property createdDate = newProperty(0, BAbsTime.DEFAULT, null);
 
   /**
    * Get the {@code createdDate} property.
@@ -183,6 +183,11 @@ public class BFile extends BComponent {
 
 //@formatter:on
 //endregion /*+ ------------ END BAJA AUTO GENERATED CODE -------------- +*/
+
+  @Override
+  public void started() {
+    doTouch();
+  }
 
   public void doTouch() {
     setModifiedDate(BAbsTime.now());
