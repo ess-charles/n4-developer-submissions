@@ -13,45 +13,6 @@ import javax.baja.sys.*;
 @NiagaraProperty( name = "s1", type = "BBoolean", defaultValue = "BBoolean.DEFAULT", flags = Flags.SUMMARY )
 @NiagaraProperty( name = "out", type = "BBoolean", defaultValue = "BBoolean.DEFAULT", flags = Flags.SUMMARY | Flags.READONLY)
 public class BFourToOneMultiplexer extends BComponent {
-
-    @Override
-    public void started() throws Exception {
-        super.started();
-
-        setOut();
-    }
-
-    @Override
-    public void changed(Property p, Context cx) {
-        super.changed(p, cx);
-
-        if (in0 == p || in1 == p || in2 == p || in3 == p || s0 == p || s1 == p) {
-            setOut();
-        }
-    }
-
-    private void setOut() {
-
-            switch (toSelectBits(getS0(), getS1())) {
-                case 0b00:
-                    setOut(getIn0());
-                    break;
-                case 0b01:
-                    setOut(getIn1());
-                    break;
-                case 0b10:
-                    setOut(getIn2());
-                    break;
-                case 0b11:
-                    setOut(getIn3());
-                    break;
-            }
-    }
-
-    private int toSelectBits(boolean s0, boolean s1) {
-        return (s1 ? 0b10 : 0) | (s0 ? 0b01 : 0);
-    }
-
 //region /*+ ------------ BEGIN BAJA AUTO GENERATED CODE ------------ +*/
 //@formatter:off
 /*@ $com.tridiumuniversity.multiplexer.BFourToOneMultiplexer(1562530754)1.0$ @*/
@@ -229,4 +190,42 @@ public class BFourToOneMultiplexer extends BComponent {
 //@formatter:on
 //endregion /*+ ------------ END BAJA AUTO GENERATED CODE -------------- +*/
 
+
+    @Override
+    public void started() throws Exception {
+        super.started();
+
+        setOut();
+    }
+
+    @Override
+    public void changed(Property p, Context cx) {
+        super.changed(p, cx);
+
+        if (in0 == p || in1 == p || in2 == p || in3 == p || s0 == p || s1 == p) {
+            setOut();
+        }
+    }
+
+    private void setOut() {
+
+        switch (toSelectBits(getS0(), getS1())) {
+            case 0b00:
+                setOut(getIn0());
+                break;
+            case 0b01:
+                setOut(getIn1());
+                break;
+            case 0b10:
+                setOut(getIn2());
+                break;
+            case 0b11:
+                setOut(getIn3());
+                break;
+        }
+    }
+
+    private int toSelectBits(boolean s0, boolean s1) {
+        return (s1 ? 0b10 : 0) | (s0 ? 0b01 : 0);
+    }
 }

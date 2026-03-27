@@ -1,4 +1,5 @@
 <types>
   <!--com.tridiumuniversity.multiplexer-->
   <type class="com.tridiumuniversity.multiplexer.BFourToOneMultiplexer" name="FourToOneMultiplexer"/>
+  <type class="com.tridiumuniversity.multiplexer.BTwoNToOneMultiplexer" name="TwoNToOneMultiplexer"/>
 </types>
