@@ -1,3 +1,8 @@
 #
 # Lexicon for the multiplexer module.
 #
+
+multiplexer.invalidName = Slot name {0} is invalid. Expected in[index] or s[index].
+multiplexer.invalidType = Slot {0} has invalid type {1}. Expected {2}.
+multiplexer.indexOutOfRange = Index {0} is out of range. Range is [{1}-{2}] inclusive.
+multiplexer.switchOutOfRange = Switch {0} is out of range. Range is [{1}-{2}] inclusive.

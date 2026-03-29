@@ -4,7 +4,6 @@ import javax.baja.nre.annotations.NiagaraProperty;
 import javax.baja.nre.annotations.NiagaraType;
 import javax.baja.sys.*;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,13 +49,62 @@ public class BTwoNToOneMultiplexer extends BComponent {
 //@formatter:on
 //endregion /*+ ------------ END BAJA AUTO GENERATED CODE -------------- +*/
 
-
-
-    private static final Pattern DYNAMIC_SLOT_PATTERN = Pattern.compile("^(in|s)(\\d+)$");
+    private static final String INPUT = "in";
+    private static final String SWITCH = "s";
+    private static final int MAX_INPUT_INDEX = 63;
+    private static final int MAX_SWITCH_INDEX = 5;
+    private static final Pattern DYNAMIC_SLOT_PATTERN = Pattern.compile("^(?<prefix>" + INPUT + "|" + SWITCH + ")(?<index>\\d+)$");
 
     @Override
-    public void started() throws Exception {
-        updateOut();
+    public void checkAdd(String name, BValue value, int flags, BFacets facets, Context cx) {
+        Matcher matcher = DYNAMIC_SLOT_PATTERN.matcher(name);
+
+        if (!matcher.matches()) {
+            throw new LocalizableRuntimeException(
+                    "multiplexer",
+                    "multiplexer.invalidName",
+                    new Object[] { name }
+            );
+        }
+
+        String prefix = matcher.group("prefix");
+        long index = Long.parseLong(matcher.group("index"));
+
+        if (prefix.equals(INPUT) && index > MAX_INPUT_INDEX) {
+            throw new LocalizableRuntimeException(
+                    "multiplexer",
+                    "multiplexer.indexOutOfRange",
+                    new Object[] {
+                            index,
+                            0,
+                            MAX_INPUT_INDEX
+                    }
+            );
+        }
+
+        if (prefix.equals(SWITCH) && index > MAX_SWITCH_INDEX) {
+            throw new LocalizableRuntimeException(
+                    "multiplexer",
+                    "multiplexer.switchOutOfRange",
+                    new Object[] {
+                            index,
+                            0,
+                            MAX_SWITCH_INDEX
+                    }
+            );
+        }
+
+        if (!(value instanceof BBoolean)) {
+            throw new LocalizableRuntimeException(
+                    "multiplexer",
+                    "multiplexer.invalidType",
+                    new Object[] {
+                            name,
+                            value == null ? "null" : value.getType(),
+                            BBoolean.TYPE
+                    }
+            );
+        }
     }
 
     @Override
@@ -82,13 +130,14 @@ public class BTwoNToOneMultiplexer extends BComponent {
 
     private void updateOut() {
         Property[] properties = getMuxProperties();
-        int sValue = getSValue(properties);
+        long selectValue = getSelectValue(properties);
 
         boolean value = Arrays.stream(properties)
-                .filter(property -> !isSwitchProperty(property))
-                .filter(property -> getMuxIndex(property) == sValue)
+                .map(ParsedMuxProperty::new)
+                .filter(parsed -> !parsed.isSwitch())
+                .filter(parsed -> parsed.index == selectValue)
                 .findFirst()
-                .map(p -> ((BBoolean) get(p)).getBoolean())
+                .map(parsed -> getBoolean(parsed.property))
                 .orElse(false);
 
         setOut(value);
@@ -110,24 +159,38 @@ public class BTwoNToOneMultiplexer extends BComponent {
         return matcher;
     }
 
-    private int getMuxIndex(Property p) {
-        return Integer.parseInt(getMuxMatcher(p).group(2));
-    }
+    private long getSelectValue(Property[] muxProperties) {
 
-    private int getSValue(Property[] muxProperties) {
         return Arrays.stream(muxProperties)
-                .filter(this::isSwitchProperty)
-                .sorted(Comparator.comparingInt(this::getMuxIndex).reversed())
-                .map(p -> ((BBoolean) get(p)).getBoolean() ? 1 : 0)
-                .reduce(0, (acc, bit) -> (acc << 1) | bit);
+                .map(ParsedMuxProperty::new)
+                .filter(ParsedMuxProperty::isSwitch)
+                .map(parsed -> ((BBoolean) get(parsed.property)).getBoolean() ? 1L << parsed.index : 0L)
+                .reduce(0L, (acc, bit) -> acc | bit);
     }
 
     private boolean isMuxProperty(Property p) {
-        return DYNAMIC_SLOT_PATTERN.matcher(p.getName()).matches();
+        return isValidName(p.getName());
     }
 
-    private boolean isSwitchProperty(Property p) {
-        return getMuxMatcher(p).group(1).equals("s");
+    private boolean isValidName(String name) {
+        return DYNAMIC_SLOT_PATTERN.matcher(name).matches();
+    }
+
+    private final class ParsedMuxProperty {
+        private final Property property;
+        private final long index;
+        private final boolean switchProperty;
+
+        private ParsedMuxProperty(Property property) {
+            Matcher matcher = getMuxMatcher(property);
+            this.property = property;
+            this.index = Long.parseLong(matcher.group("index"));
+            this.switchProperty = matcher.group("prefix").equals(SWITCH);
+        }
+
+        private boolean isSwitch() {
+            return switchProperty;
+        }
     }
 
 }
