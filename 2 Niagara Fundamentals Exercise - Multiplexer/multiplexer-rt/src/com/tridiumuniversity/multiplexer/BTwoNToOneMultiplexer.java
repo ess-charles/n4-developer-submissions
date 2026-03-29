@@ -51,15 +51,46 @@ public class BTwoNToOneMultiplexer extends BComponent {
 
     private static final String INPUT = "in";
     private static final String SWITCH = "s";
+    private static final int MAX_INPUT_INDEX = 63;
+    private static final int MAX_SWITCH_INDEX = 5;
     private static final Pattern DYNAMIC_SLOT_PATTERN = Pattern.compile("^(?<prefix>" + INPUT + "|" + SWITCH + ")(?<index>\\d+)$");
 
     @Override
     public void checkAdd(String name, BValue value, int flags, BFacets facets, Context cx) {
-        if (!isValidName(name)) {
+        Matcher matcher = DYNAMIC_SLOT_PATTERN.matcher(name);
+
+        if (!matcher.matches()) {
             throw new LocalizableRuntimeException(
                     "multiplexer",
                     "multiplexer.invalidName",
                     new Object[] { name }
+            );
+        }
+
+        String prefix = matcher.group("prefix");
+        long index = Long.parseLong(matcher.group("index"));
+
+        if (prefix.equals(INPUT) && index > MAX_INPUT_INDEX) {
+            throw new LocalizableRuntimeException(
+                    "multiplexer",
+                    "multiplexer.indexOutOfRange",
+                    new Object[] {
+                            index,
+                            0,
+                            MAX_INPUT_INDEX
+                    }
+            );
+        }
+
+        if (prefix.equals(SWITCH) && index > MAX_SWITCH_INDEX) {
+            throw new LocalizableRuntimeException(
+                    "multiplexer",
+                    "multiplexer.switchOutOfRange",
+                    new Object[] {
+                            index,
+                            0,
+                            MAX_SWITCH_INDEX
+                    }
             );
         }
 
@@ -99,13 +130,14 @@ public class BTwoNToOneMultiplexer extends BComponent {
 
     private void updateOut() {
         Property[] properties = getMuxProperties();
-        int sValue = getSValue(properties);
+        long selectValue = getSelectValue(properties);
 
         boolean value = Arrays.stream(properties)
-                .filter(property -> !isSwitchProperty(property))
-                .filter(property -> getMuxIndex(property) == sValue)
+                .map(ParsedMuxProperty::new)
+                .filter(parsed -> !parsed.isSwitch())
+                .filter(parsed -> parsed.index == selectValue)
                 .findFirst()
-                .map(this::getBoolean)
+                .map(parsed -> getBoolean(parsed.property))
                 .orElse(false);
 
         setOut(value);
@@ -127,16 +159,13 @@ public class BTwoNToOneMultiplexer extends BComponent {
         return matcher;
     }
 
-    private int getMuxIndex(Property p) {
-        return Integer.parseInt(getMuxMatcher(p).group("index"));
-    }
-
-    private int getSValue(Property[] muxProperties) {
+    private long getSelectValue(Property[] muxProperties) {
 
         return Arrays.stream(muxProperties)
-                .filter(this::isSwitchProperty)
-                .map(p -> ((BBoolean) get(p)).getBoolean() ? 1 << getMuxIndex(p) : 0)
-                .reduce(0, (acc, bit) -> acc | bit);
+                .map(ParsedMuxProperty::new)
+                .filter(ParsedMuxProperty::isSwitch)
+                .map(parsed -> ((BBoolean) get(parsed.property)).getBoolean() ? 1L << parsed.index : 0L)
+                .reduce(0L, (acc, bit) -> acc | bit);
     }
 
     private boolean isMuxProperty(Property p) {
@@ -147,8 +176,21 @@ public class BTwoNToOneMultiplexer extends BComponent {
         return DYNAMIC_SLOT_PATTERN.matcher(name).matches();
     }
 
-    private boolean isSwitchProperty(Property p) {
-        return getMuxMatcher(p).group("prefix").equals(SWITCH);
+    private final class ParsedMuxProperty {
+        private final Property property;
+        private final long index;
+        private final boolean switchProperty;
+
+        private ParsedMuxProperty(Property property) {
+            Matcher matcher = getMuxMatcher(property);
+            this.property = property;
+            this.index = Long.parseLong(matcher.group("index"));
+            this.switchProperty = matcher.group("prefix").equals(SWITCH);
+        }
+
+        private boolean isSwitch() {
+            return switchProperty;
+        }
     }
 
 }
