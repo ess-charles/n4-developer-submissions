@@ -46,6 +46,9 @@ dependencies {
   // Niagara module dependencies
   api(":baja")
 
+  api(":driver-rt")
+  api(":alarm-rt")
+
   // Test Niagara module dependencies
   moduleTestImplementation(":test-wb")
 }
