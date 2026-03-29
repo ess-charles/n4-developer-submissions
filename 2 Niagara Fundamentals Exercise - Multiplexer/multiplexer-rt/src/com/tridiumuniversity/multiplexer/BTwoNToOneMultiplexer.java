@@ -4,7 +4,6 @@ import javax.baja.nre.annotations.NiagaraProperty;
 import javax.baja.nre.annotations.NiagaraType;
 import javax.baja.sys.*;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,11 +54,6 @@ public class BTwoNToOneMultiplexer extends BComponent {
     private static final Pattern DYNAMIC_SLOT_PATTERN = Pattern.compile("^(in|s)(\\d+)$");
 
     @Override
-    public void started() throws Exception {
-        updateOut();
-    }
-
-    @Override
     public void changed(Property p, Context cx) {
         if (isMuxProperty(p)) {
             updateOut();
@@ -88,7 +82,7 @@ public class BTwoNToOneMultiplexer extends BComponent {
                 .filter(property -> !isSwitchProperty(property))
                 .filter(property -> getMuxIndex(property) == sValue)
                 .findFirst()
-                .map(p -> ((BBoolean) get(p)).getBoolean())
+                .map(this::getBoolean)
                 .orElse(false);
 
         setOut(value);
@@ -115,11 +109,11 @@ public class BTwoNToOneMultiplexer extends BComponent {
     }
 
     private int getSValue(Property[] muxProperties) {
+
         return Arrays.stream(muxProperties)
                 .filter(this::isSwitchProperty)
-                .sorted(Comparator.comparingInt(this::getMuxIndex).reversed())
-                .map(p -> ((BBoolean) get(p)).getBoolean() ? 1 : 0)
-                .reduce(0, (acc, bit) -> (acc << 1) | bit);
+                .map(p -> ((BBoolean) get(p)).getBoolean() ? 1 << getMuxIndex(p) : 0)
+                .reduce(0, (acc, bit) -> acc | bit);
     }
 
     private boolean isMuxProperty(Property p) {

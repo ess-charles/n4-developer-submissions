@@ -190,17 +190,8 @@ public class BFourToOneMultiplexer extends BComponent {
 //@formatter:on
 //endregion /*+ ------------ END BAJA AUTO GENERATED CODE -------------- +*/
 
-
-    @Override
-    public void started() throws Exception {
-        super.started();
-
-        setOut();
-    }
-
     @Override
     public void changed(Property p, Context cx) {
-        super.changed(p, cx);
 
         if (in0 == p || in1 == p || in2 == p || in3 == p || s0 == p || s1 == p) {
             setOut();
