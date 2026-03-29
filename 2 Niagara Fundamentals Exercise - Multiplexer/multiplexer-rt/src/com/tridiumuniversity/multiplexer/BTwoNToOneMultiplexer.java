@@ -49,9 +49,32 @@ public class BTwoNToOneMultiplexer extends BComponent {
 //@formatter:on
 //endregion /*+ ------------ END BAJA AUTO GENERATED CODE -------------- +*/
 
+    private static final String INPUT = "in";
+    private static final String SWITCH = "s";
+    private static final Pattern DYNAMIC_SLOT_PATTERN = Pattern.compile("^(?<prefix>" + INPUT + "|" + SWITCH + ")(?<index>\\d+)$");
 
+    @Override
+    public void checkAdd(String name, BValue value, int flags, BFacets facets, Context cx) {
+        if (!isValidName(name)) {
+            throw new LocalizableRuntimeException(
+                    "multiplexer",
+                    "multiplexer.invalidName",
+                    new Object[] { name }
+            );
+        }
 
-    private static final Pattern DYNAMIC_SLOT_PATTERN = Pattern.compile("^(in|s)(\\d+)$");
+        if (!(value instanceof BBoolean)) {
+            throw new LocalizableRuntimeException(
+                    "multiplexer",
+                    "multiplexer.invalidType",
+                    new Object[] {
+                            name,
+                            value == null ? "null" : value.getType(),
+                            BBoolean.TYPE
+                    }
+            );
+        }
+    }
 
     @Override
     public void changed(Property p, Context cx) {
@@ -105,7 +128,7 @@ public class BTwoNToOneMultiplexer extends BComponent {
     }
 
     private int getMuxIndex(Property p) {
-        return Integer.parseInt(getMuxMatcher(p).group(2));
+        return Integer.parseInt(getMuxMatcher(p).group("index"));
     }
 
     private int getSValue(Property[] muxProperties) {
@@ -117,11 +140,15 @@ public class BTwoNToOneMultiplexer extends BComponent {
     }
 
     private boolean isMuxProperty(Property p) {
-        return DYNAMIC_SLOT_PATTERN.matcher(p.getName()).matches();
+        return isValidName(p.getName());
+    }
+
+    private boolean isValidName(String name) {
+        return DYNAMIC_SLOT_PATTERN.matcher(name).matches();
     }
 
     private boolean isSwitchProperty(Property p) {
-        return getMuxMatcher(p).group(1).equals("s");
+        return getMuxMatcher(p).group("prefix").equals(SWITCH);
     }
 
 }
